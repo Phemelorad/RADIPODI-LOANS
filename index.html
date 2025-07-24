@@ -80,7 +80,7 @@
         alert("❌ Registration failed: " + error.message);
       } else {
         alert("✅ Registration successful! Check your email to confirm.");
-        showLogin();
+        window.location.href = "homepage.html";
       }
     }
 
@@ -94,7 +94,7 @@
       if (error) {
         alert("❌ Login failed: " + error.message);
       } else {
-        showDashboard(data.user);
+        window.location.href = "homepage.html";
       }
     }
 
