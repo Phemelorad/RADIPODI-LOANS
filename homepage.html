@@ -3,8 +3,31 @@
 <html>
 <head>
   <title>Home</title>
+  <link rel="stylesheet" href="navigation.css">
+  <link rel="stylesheet" href="header.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+  <header class="txt">
+    <figure>
+        <div id="user-info" class="lg">
+         <br> <img src="user.png" class="image"><br>
+         <a class="bld-txt">Logged in as:</a><br><span id="user-email"></span><br>
+         <br><button class="nav1" onclick="logout()">Logout</button><br>
+        </div>
+    </figure>
+    <h1>RADIPODI MICRO LOANS</h1>
+    <h4>"Funding Tomorrow, Today."</h4>
+
+    <section>
+       <div class="nav">
+         <button onclick="location.href='apply.html'">Home</button>
+         <button onclick="location.href='apply.html'">Apply Now</button>
+         <button onclick="location.href='status.html'">Check Loan Status</button>
+         <button onclick="location.href='repay.html'">Repay</button>
+         
+      </div>
+    </section>
+</header>
 <body>
   <div id="user-info">
     Logged in as: <span id="user-email"></span>
