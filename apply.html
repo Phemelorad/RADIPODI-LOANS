@@ -133,12 +133,12 @@
 
     const filename = `${Date.now()}_${file.name}`;
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("id_copies")
+      .from("id-copies")
       .upload(filename, file);
 
     if (uploadError) return alert("❌ Upload failed: " + uploadError.message);
 
-    const { data: urlData } = supabase.storage.from("id_copies").getPublicUrl(filename);
+    const { data: urlData } = supabase.storage.from("id-copies").getPublicUrl(filename);
     const id_copy_url = urlData.publicUrl;
 
     const applicant = {
