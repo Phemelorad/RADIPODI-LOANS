@@ -53,19 +53,10 @@
     function showRegister() {
       document.getElementById("register-form").classList.remove("hidden");
       document.getElementById("login-form").classList.add("hidden");
-      document.getElementById("dashboard").classList.add("hidden");
     }
 
     function showLogin() {
       document.getElementById("login-form").classList.remove("hidden");
-      document.getElementById("register-form").classList.add("hidden");
-      document.getElementById("dashboard").classList.add("hidden");
-    }
-
-    function showDashboard(user) {
-      document.getElementById("user-email").textContent = user.email;
-      document.getElementById("dashboard").classList.remove("hidden");
-      document.getElementById("login-form").classList.add("hidden");
       document.getElementById("register-form").classList.add("hidden");
     }
 
@@ -97,22 +88,6 @@
         window.location.href = "homepage.html";
       }
     }
-
-    // Logout
-    async function logout() {
-      await supabase.auth.signOut();
-      showLogin();
-    }
-
-    // Check session on page load
-    window.addEventListener('DOMContentLoaded', async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (data?.user) {
-        showDashboard(data.user);
-      } else {
-        showLogin();
-      }
-    });
   </script>
 </body>
 </html>
