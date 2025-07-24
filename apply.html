@@ -105,23 +105,23 @@
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YmZieWV3bnlhaXNtY2dseWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzODU3OTcsImV4cCI6MjA2ODk2MTc5N30._lUj5eRW4utQ7enh_Tt6xhJAGvhu_SHbytQqkmh_B2M'
   );
 
-  // ✅ Show logged-in user email
-  async function checkSession() {
-    const { data, error } = await supabase.auth.getSession();
-    const session = data.session;
-
-    if (error || !session) {
-      window.location.href = "index.html";
-    } else {
-      document.getElementById("user-email").textContent = session.user.email;
+ async function checkSession() {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        document.getElementById("user-email").textContent = data.user.email;
+      } else {
+        // Redirect back to login if no session
+        window.location.href = "index.html";
+      }
     }
-  }
 
-  // ✅ Logout
-  async function logout() {
-    await supabase.auth.signOut();
-    window.location.href = "index.html";
-  }
+    async function logout() {
+      await supabase.auth.signOut();
+      window.location.href = "index.html";
+    }
+
+    checkSession();
+  
 
   // ✅ Submit Application
   async function submitApplication(event) {
