@@ -1,62 +1,28 @@
+<!-- homepage.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Homepage - RADIPODI MICRO LOANS</title>
+  <title>Home</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 40px;
-      max-width: 600px;
-      margin: auto;
-      background-color: #f8f8f8;
-    }
-    h1, h2 {
-      color: #333;
-    }
-    #user-info {
-      margin-top: 20px;
-      padding: 15px;
-      background: #e0ffe0;
-      border-left: 5px solid green;
-    }
-    #logout-btn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: crimson;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    #logout-btn:hover {
-      background-color: darkred;
-    }
-  </style>
 </head>
 <body>
-
-  <h1>RADIPODI MICRO LOANS</h1>
-  <h2>Welcome to your Dashboard</h2>
-
   <div id="user-info">
-    Logged in as: <span id="user-email">Loading...</span>
+    Logged in as: <span id="user-email"></span>
+    <button onclick="logout()">Logout</button>
   </div>
 
-  <button id="logout-btn" onclick="logout()">Logout</button>
-
   <script>
-    const supabase = supabase.createClient(
-      'https://aybfbyewnyaismcglyls.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YmZieWV3bnlhaXNtY2dseWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzODU3OTcsImV4cCI6MjA2ODk2MTc5N30._lUj5eRW4utQ7enh_Tt6xhJAGvhu_SHbytQqkmh_B2M'
-    );
+    const supabaseUrl = 'https://aybfbyewnyaismcglyls.supabase.co';
+    const supabaseKey = 'YOUR_KEY_HERE';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     async function checkSession() {
-      const { data, error } = await supabase.auth.getUser();
-      if (data?.user) {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
         document.getElementById("user-email").textContent = data.user.email;
       } else {
-        window.location.href = "login.html"; // 🔁 Redirect if not logged in
+        // Redirect back to login if no session
+        window.location.href = "login.html";
       }
     }
 
@@ -67,6 +33,5 @@
 
     checkSession();
   </script>
-
 </body>
 </html>
