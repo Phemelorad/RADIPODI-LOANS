@@ -1,136 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Loan Application Form</title>
-  <link rel="stylesheet" href="form.css">
-  <link rel="stylesheet" href="navigation.css">
-  <link rel="stylesheet" href="header.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-
-<body>
-
-<header class="txt">
-  <figure>
-    <div id="user-info" class="lg">
-      <br><img src="user.png" class="image"><br>
-      <a class="bld-txt"><strong>Logged in as:</strong></a><br><span id="user-email"></span><br>
-      <br><button class="nav1" onclick="logout()">Logout</button><br>
-    </div>
-  </figure>
-  <h1>RADIPODI MICRO LOANS</h1>
-  <h4>"Funding Tomorrow, Today."</h4>
-
-  <section>
-    <div class="nav">
-      <button onclick="location.href='homepage.html'">Home</button>
-      <button onclick="location.href='apply.html'">Apply Now</button>
-      <button onclick="location.href='status.html'">Check Loan Status</button>
-      <button onclick="location.href='repay.html'">Repay</button>
-    </div>
-  </section>
-</header>
-
-<form class="frm" onsubmit="submitApplication(event)">
-  <h2 class="txt">Basic Personal Information</h2>
-  <p>
-    Name: <input type="text" id="name" required><br>
-    Surname: <input type="text" id="surname" required><br>
-    D.O.B: <input type="date" id="date" required><br>
-    Gender:
-    <select id="gender" required>
-      <option value="">-- Select gender --</option>
-      <option value="male">Male</option>
-      <option value="female">Female</option>
-      <option value="other">Other</option>
-    </select>
-  </p>
-
-  <p>
-    ID/Passport No: <input type="text" id="omang" required><br>
-    Phone No: <input type="text" id="phone1" required><br>
-    Phone No 2: <input type="text" id="phone2">
-  </p>
-
-  <p>
-    ID Copy: <input type="file" id="id" accept="image/*,.pdf" required><br>
-    Email: <input type="email" id="email" required><br>
-    Residential Address: <input type="text" id="address" required>
-  </p>
-
-  <h2 class="txt">Employment & Income Details</h2>
-  <p>
-    Employment Status:
-    <select id="es" required>
-      <option value="">-- Select status --</option>
-      <option value="employed">Employed</option>
-      <option value="self">Self-Employed</option>
-      <option value="unemployed">Unemployed</option>
-    </select><br>
-    Occupation: <input type="text" id="occupation" required><br>
-    Work Cell: <input type="text" id="work" required>
-  </p>
-
-  <h2 class="txt">Loan-Specific Information</h2>
-  <p>
-    Loan Amount (P): <input type="number" id="amount" required><br>
-    Repayment Period:
-    <select id="repayment" required>
-      <option value="">-- Select period --</option>
-      <option value="1">1 month</option>
-      <option value="2">2 months</option>
-      <option value="3">3 months</option>
-    </select>
-  </p>
-
-  <h2 class="txt">Banking Information</h2>
-  <p>
-    Bank Account Details: <input type="text" id="bad" required>
-  </p>
-
-  <h2 class="txt">References or Guarantors</h2>
-  <p>
-    Name: <input type="text" id="gname" required><br>
-    Surname: <input type="text" id="gsurname" required><br>
-    Contact Info: <input type="text" id="gphone" required>
-  </p>
-
-  <button type="submit">Submit Application</button>
-</form>
-
-<script>
-  const supabase = supabase.createClient(
-    'https://aybfbyewnyaismcglyls.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YmZieWV3bnlhaXNtY2dseWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzODU3OTcsImV4cCI6MjA2ODk2MTc5N30._lUj5eRW4utQ7enh_Tt6xhJAGvhu_SHbytQqkmh_B2M'
-  );
-
-  // ✅ Check session and display user email
+// ✅ Show logged-in user email
   async function checkSession() {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (!session || error) {
-      window.location.href = "index.html"; // Redirect to login
+    const { data, error } = await supabase.auth.getSession();
+    const session = data.session;
+
+    if (error || !session) {
+      window.location.href = "index.html";
     } else {
       document.getElementById("user-email").textContent = session.user.email;
     }
   }
 
-  // 🔓 Logout function
+  // ✅ Logout
   async function logout() {
     await supabase.auth.signOut();
     window.location.href = "index.html";
   }
 
-  // ✅ Submit loan application
+  // ✅ Submit Application
   async function submitApplication(event) {
     event.preventDefault();
 
+    // Upload ID copy
     const file = document.getElementById("id").files[0];
     if (!file) return alert("Please upload an ID copy.");
 
     const filename = `${Date.now()}_${file.name}`;
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("id-copies")
+      .from("id-copies") // ✅ Make sure bucket is called "id-copies"
       .upload(filename, file);
 
     if (uploadError) return alert("❌ Upload failed: " + uploadError.message);
@@ -138,6 +34,7 @@
     const { data: urlData } = supabase.storage.from("id-copies").getPublicUrl(filename);
     const id_copy_url = urlData.publicUrl;
 
+    // Get applicant data
     const applicant = {
       name: document.getElementById("name").value,
       surname: document.getElementById("surname").value,
@@ -169,17 +66,17 @@
       phone: document.getElementById("gphone").value
     };
 
-    // 📝 Insert into applicants table first
+    // Insert applicant
     const { data: applicantData, error: applicantError } = await supabase
       .from("applicants")
       .insert([applicant])
       .select("applicant_id")
       .single();
 
-    if (applicantError) return alert("❌ Saving applicant failed: " + applicantError.message);
+    if (applicantError) return alert("❌ Applicant save failed: " + applicantError.message);
     const applicant_id = applicantData.applicant_id;
 
-    // Insert into other tables
+    // Insert into related tables
     const { error: empErr } = await supabase.from("employment").insert([{ applicant_id, ...employment }]);
     const { error: loanErr } = await supabase.from("loan_applications").insert([{ applicant_id, ...loan }]);
     const { error: guarErr } = await supabase.from("guarantors").insert([{ applicant_id, ...guarantor }]);
@@ -192,9 +89,6 @@
     document.querySelector("form").reset();
   }
 
-  // 🚀 On page load
+  // ✅ Init on page load
   checkSession();
 </script>
-
-</body>
-</html>
