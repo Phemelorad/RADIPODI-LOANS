@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Loan Application Form</title>
+  <link rel="stylesheet" href="form.css">
+  <link rel="stylesheet" href="navigation.css">
+  <link rel="stylesheet" href="header.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+</head>
+<header class="txt">
+    <figure>
+        <div id="user-info" class="lg">
+         <br> <img src="user.png" class="image"><br>
+         <a class="bld-txt">Logged in as:</a><br><span id="user-email"></span><br>
+         <br><button class="nav1" onclick="logout()">Logout</button><br>
+        </div>
+    </figure>
+    <h1>RADIPODI MICRO LOANS</h1>
+    <h4>"Funding Tomorrow, Today."</h4>
+
+    <section>
+       <div class="nav">
+         <button onclick="location.href='homepage.html'">Home</button>
+         <button onclick="location.href='apply.html'">Apply Now</button>
+         <button onclick="location.href='status.html'">Check Loan Status</button>
+         <button onclick="location.href='repay.html'">Repay</button>
+         
+      </div>
+    </section>
+</header>
+
+<body>
+
+  <form class="frm" onsubmit="submitApplication(event)">
+
+    <h2 class="txt">Basic Personal Information</h2>
+
+    <p>
+      Name: <input type="text" id="name" placeholder="John/Jane" required><br>
+      Surname: <input type="text" id="surname" placeholder="Doe" required><br>
+      D.O.B: <input type="date" id="date" required><br>
+      Gender:
+      <select id="gender" name="gender" required>
+        <option value="">-- Select gender --</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+      </select>
+    </p>
+
+    <p>
+      ID/Passport No: <input type="text" id="omang" placeholder="012345678" required><br>
+      Phone No: <input type="text" id="phone1" placeholder="+267 71234567" required><br>
+      Phone No 2: <input type="text" id="phone2" placeholder="+267 71234567">
+    </p>
+
+    <p>
+      ID Copy:<input type="file" id="id" accept="image/*,.pdf" required><br>
+      Email: <input type="email" id="email" required placeholder="johndoe@yahoo.com"><br>
+      Residential Address: <input type="text" id="address" required>
+    </p>
+
+    <h2 class="txt">Employment & Income Details</h2>
+    <p>
+      Employment Status:
+      <select id="es" name="es" required>
+        <option value="">-- Select status --</option>
+        <option value="employed">Employed</option>
+        <option value="self">Self-Employed</option>
+        <option value="unemployed">Unemployed</option>
+      </select><br>
+
+      Occupation: <input type="text" id="occupation" placeholder="e.g., Teacher" required><br>
+      Work Cell: <input type="text" id="work" placeholder="+267 71234567" required>
+    </p>
+
+    <h2 class="txt">Loan-Specific Information</h2>
+    <p>
+      Loan Amount Requested (P): <input type="number" id="amount" required><br>
+      Preferred Repayment Period:
+      <select id="repayment" name="repayment" required>
+        <option value="">-- Select period --</option>
+        <option value="1">1 month</option>
+        <option value="2">2 months</option>
+        <option value="3">3 months</option>
+      </select>
+    </p>
+
+    <h2 class="txt">Banking Information</h2>
+    <p>
+      Bank Account Details: <input type="text" id="bad" required>
+    </p>
+
+    <h2 class="txt">References or Guarantors</h2>
+    <p>
+      Name: <input type="text" id="gname" placeholder="John/Jane" required><br>
+      Surname: <input type="text" id="gsurname" placeholder="Doe" required><br>
+      Contact Info: <input type="text" id="gphone" placeholder="+267 71234567" required>
+    </p>
+    <button type="submit">Submit Application</button>
+
+
+  </form>
+
+  <script>
+  const supabase = supabase.createClient(
+    'https://aybfbyewnyaismcglyls.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YmZieWV3bnlhaXNtY2dseWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzODU3OTcsImV4cCI6MjA2ODk2MTc5N30._lUj5eRW4utQ7enh_Tt6xhJAGvhu_SHbytQqkmh_B2M'
+  );
+
+  // 🔐 Check session and populate email
+  async function checkSession() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      window.location.href = 'index.html';
+    } else {
+      document.getElementById("user-email").textContent = user.email;
+    }
+  }
+
+  async function logout() {
+    await supabase.auth.signOut();
+    window.location.href = "index.html";
+  }
+
+  async function submitApplication(event) {
+    event.preventDefault();
+
+    const file = document.getElementById("id").files[0];
+    if (!file) return alert("Please upload an ID copy.");
+
+    const filename = `${Date.now()}_${file.name}`;
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("id_copies")
+      .upload(filename, file);
+
+    if (uploadError) return alert("❌ Upload failed: " + uploadError.message);
+
+    const { data: urlData } = supabase.storage.from("id_copies").getPublicUrl(filename);
+    const id_copy_url = urlData.publicUrl;
+
+    const applicant = {
+      name: document.getElementById("name").value,
+      surname: document.getElementById("surname").value,
+      dob: document.getElementById("date").value,
+      gender: document.getElementById("gender").value,
+      id_number: document.getElementById("omang").value,
+      phone1: document.getElementById("phone1").value,
+      phone2: document.getElementById("phone2").value,
+      email: document.getElementById("email").value,
+      address: document.getElementById("address").value,
+      id_copy_url
+    };
+
+    const employment = {
+      status: document.getElementById("es").value,
+      occupation: document.getElementById("occupation").value,
+      work_phone: document.getElementById("work").value
+    };
+
+    const loan = {
+      loan_amount: parseFloat(document.getElementById("amount").value),
+      repayment_months: parseInt(document.getElementById("repayment").value),
+      bank_account: document.getElementById("bad").value
+    };
+
+    const guarantor = {
+      name: document.getElementById("gname").value,
+      surname: document.getElementById("gsurname").value,
+      phone: document.getElementById("gphone").value
+    };
+
+    const { data: applicantData, error: applicantError } = await supabase
+      .from("applicants")
+      .insert([applicant])
+      .select("applicant_id")
+      .single();
+
+    if (applicantError) return alert("❌ Saving applicant failed: " + applicantError.message);
+    const applicant_id = applicantData.applicant_id;
+
+    const { error: empErr } = await supabase.from("employment").insert([{ applicant_id, ...employment }]);
+    const { error: loanErr } = await supabase.from("loan_applications").insert([{ applicant_id, ...loan }]);
+    const { error: guarErr } = await supabase.from("guarantors").insert([{ applicant_id, ...guarantor }]);
+
+    if (empErr || loanErr || guarErr) {
+      return alert("❌ One of the inserts failed: " + (empErr?.message || loanErr?.message || guarErr?.message));
+    }
+
+    alert("✅ Application submitted successfully!");
+    document.querySelector("form").reset();
+  }
+
+  // Call session checker
+  checkSession();
+</script>
+
+
+ 
+
+
+</body>
+</html>
