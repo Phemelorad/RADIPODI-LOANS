@@ -88,6 +88,18 @@
         window.location.href = "homepage.html";
       }
     }
+    // Session persistence check on page load
+  window.addEventListener("DOMContentLoaded", async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session) {
+      // User is already logged in
+      window.location.href = "homepage.html"; // Redirect or show dashboard
+    } else {
+      // User not logged in, stay on login/register
+      showLogin();
+    }
+  });
   </script>
 </body>
 </html>
