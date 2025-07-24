@@ -22,13 +22,13 @@
         document.getElementById("user-email").textContent = data.user.email;
       } else {
         // Redirect back to login if no session
-        window.location.href = "login.html";
+        window.location.href = "index.html";
       }
     }
 
     async function logout() {
       await supabase.auth.signOut();
-      window.location.href = "login.html";
+      window.location.href = "index.html";
     }
 
     checkSession();
