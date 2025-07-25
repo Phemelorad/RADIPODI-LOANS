@@ -3,6 +3,7 @@
 <html>
 <head>
   <title>apply</title>
+  <link rel="stylesheet" href="form.css">
   <link rel="stylesheet" href="navigation.css">
   <link rel="stylesheet" href="header.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -28,11 +29,79 @@
       </div>
     </section>
 </header>
-<body>
-  <div id="user-info">
-    Logged in as: <span id="user-email"></span>
-    <button onclick="logout()">Logout</button>
-  </div>
+  <body>
+
+  <form class="frm" onsubmit="submitApplication(event)">
+
+    <h2 class="txt">Basic Personal Information</h2>
+
+    <p>
+      Name: <input type="text" id="name" placeholder="John/Jane" required><br>
+      Surname: <input type="text" id="surname" placeholder="Doe" required><br>
+      D.O.B: <input type="date" id="date" required><br>
+      Gender:
+      <select id="gender" name="gender" required>
+        <option value="">-- Select gender --</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+      </select>
+    </p>
+
+    <p>
+      ID/Passport No: <input type="text" id="omang" placeholder="012345678" required><br>
+      Phone No: <input type="text" id="phone1" placeholder="+267 71234567" required><br>
+      Phone No 2: <input type="text" id="phone2" placeholder="+267 71234567">
+    </p>
+
+    <p>
+      ID Copy:<input type="file" id="id" accept="image/*,.pdf" required><br>
+      Email: <input type="email" id="email" required placeholder="johndoe@yahoo.com"><br>
+      Residential Address: <input type="text" id="address" required>
+    </p>
+
+    <h2 class="txt">Employment & Income Details</h2>
+    <p>
+      Employment Status:
+      <select id="es" name="es" required>
+        <option value="">-- Select status --</option>
+        <option value="employed">Employed</option>
+        <option value="self">Self-Employed</option>
+        <option value="unemployed">Unemployed</option>
+      </select><br>
+
+      Occupation: <input type="text" id="occupation" placeholder="e.g., Teacher" required><br>
+      Work Cell: <input type="text" id="work" placeholder="+267 71234567" required>
+    </p>
+
+    <h2 class="txt">Loan-Specific Information</h2>
+    <p>
+      Loan Amount Requested (P): <input type="number" id="amount" required><br>
+      Preferred Repayment Period:
+      <select id="repayment" name="repayment" required>
+        <option value="">-- Select period --</option>
+        <option value="1">1 month</option>
+        <option value="2">2 months</option>
+        <option value="3">3 months</option>
+      </select>
+    </p>
+
+    <h2 class="txt">Banking Information</h2>
+    <p>
+      Bank Account Details: <input type="text" id="bad" required>
+    </p>
+
+    <h2 class="txt">References or Guarantors</h2>
+    <p>
+      Name: <input type="text" id="gname" placeholder="John/Jane" required><br>
+      Surname: <input type="text" id="gsurname" placeholder="Doe" required><br>
+      Contact Info: <input type="text" id="gphone" placeholder="+267 71234567" required>
+    </p>
+    <button type="submit">Submit Application</button>
+
+
+  </form>
+
 
   <script>
     const supabaseUrl = 'https://aybfbyewnyaismcglyls.supabase.co';
