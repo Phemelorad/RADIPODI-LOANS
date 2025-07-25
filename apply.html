@@ -6,7 +6,8 @@
   <link rel="stylesheet" href="form.css">
   <link rel="stylesheet" href="navigation.css">
   <link rel="stylesheet" href="header.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+ <script src="session.js"></script>
 </head>
 
 <body>
@@ -99,49 +100,30 @@
   <button type="submit">Submit Application</button>
 </form>
 
-<script>
-  const supabase = supabase.createClient(
-    'https://aybfbyewnyaismcglyls.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YmZieWV3bnlhaXNtY2dseWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzODU3OTcsImV4cCI6MjA2ODk2MTc5N30._lUj5eRW4utQ7enh_Tt6xhJAGvhu_SHbytQqkmh_B2M'
-  );
+<script type="module">
+  const supabase = window.supabase;
 
- async function checkSession() {
-      const { data } = await supabase.auth.getUser();
-      if (data.user) {
-        document.getElementById("user-email").textContent = data.user.email;
-      } else {
-        // Redirect back to login if no session
-        window.location.href = "index.html";
-      }
-    }
+  document.querySelector("form").addEventListener("submit", submitApplication);
 
-    async function logout() {
-      await supabase.auth.signOut();
-      window.location.href = "index.html";
-    }
-
-    checkSession();
-  
-
-  // ✅ Submit Application
   async function submitApplication(event) {
     event.preventDefault();
 
-    // Upload ID copy
     const file = document.getElementById("id").files[0];
     if (!file) return alert("Please upload an ID copy.");
 
     const filename = `${Date.now()}_${file.name}`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("id-copies") // ✅ Make sure bucket is called "id-copies"
+    const { data: uploadData, error: uploadError } = await supabase
+      .storage
+      .from("id-copies")
       .upload(filename, file);
 
     if (uploadError) return alert("❌ Upload failed: " + uploadError.message);
 
-    const { data: urlData } = supabase.storage.from("id-copies").getPublicUrl(filename);
-    const id_copy_url = urlData.publicUrl;
+    const { data: urlData } = supabase
+      .storage
+      .from("id-copies")
+      .getPublicUrl(filename);
 
-    // Get applicant data
     const applicant = {
       name: document.getElementById("name").value,
       surname: document.getElementById("surname").value,
@@ -152,7 +134,7 @@
       phone2: document.getElementById("phone2").value,
       email: document.getElementById("email").value,
       address: document.getElementById("address").value,
-      id_copy_url
+      id_copy_url: urlData.publicUrl
     };
 
     const employment = {
@@ -173,7 +155,6 @@
       phone: document.getElementById("gphone").value
     };
 
-    // Insert applicant
     const { data: applicantData, error: applicantError } = await supabase
       .from("applicants")
       .insert([applicant])
@@ -181,12 +162,20 @@
       .single();
 
     if (applicantError) return alert("❌ Applicant save failed: " + applicantError.message);
+
     const applicant_id = applicantData.applicant_id;
 
-    // Insert into related tables
-    const { error: empErr } = await supabase.from("employment").insert([{ applicant_id, ...employment }]);
-    const { error: loanErr } = await supabase.from("loan_applications").insert([{ applicant_id, ...loan }]);
-    const { error: guarErr } = await supabase.from("guarantors").insert([{ applicant_id, ...guarantor }]);
+    const { error: empErr } = await supabase
+      .from("employment")
+      .insert([{ applicant_id, ...employment }]);
+
+    const { error: loanErr } = await supabase
+      .from("loan_applications")
+      .insert([{ applicant_id, ...loan }]);
+
+    const { error: guarErr } = await supabase
+      .from("guarantors")
+      .insert([{ applicant_id, ...guarantor }]);
 
     if (empErr || loanErr || guarErr) {
       return alert("❌ One of the inserts failed: " + (empErr?.message || loanErr?.message || guarErr?.message));
@@ -195,9 +184,7 @@
     alert("✅ Application submitted successfully!");
     document.querySelector("form").reset();
   }
-
-  // ✅ Init on page load
-  checkSession();
 </script>
+
 </body>
 </html>
