@@ -1,84 +1,214 @@
-<!-- homepage.html -->
 <!DOCTYPE html>
 <html>
 <head>
-  <title>apply</title>
+  <title>Apply</title>
   <link rel="stylesheet" href="form.css">
   <link rel="stylesheet" href="navigation.css">
   <link rel="stylesheet" href="header.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // Supabase credentials
+    const supabaseUrl = 'https://aybfbyewnyaismcglyls.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YmZieWV3bnlhaXNtY2dseWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzODU3OTcsImV4cCI6MjA2ODk2MTc5N30._lUj5eRW4utQ7enh_Tt6xhJAGvhu_SHbytQqkmh_B2M'
+  ;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Check session & auto-fill user
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const emailSpan = document.getElementById('user-email');
+      if (emailSpan) emailSpan.textContent = session.user.email;
+
+      const form = document.querySelector('.frm');
+      if (form) form.addEventListener('submit', submitApplication);
+
+      const logoutBtn = document.getElementById('logout-btn');
+      if (logoutBtn) logoutBtn.addEventListener('click', logout);
+    });
+
+    // Logout
+    async function logout() {
+      await supabase.auth.signOut();
+      window.location.href = 'index.html';
+    }
+
+    // Handle Form Submission
+    async function submitApplication(event) {
+      event.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const surname = document.getElementById('surname').value;
+      const dob = document.getElementById('date').value;
+      const gender = document.getElementById('gender').value;
+      const id_number = document.getElementById('omang').value;
+      const phone1 = document.getElementById('phone1').value;
+      const phone2 = document.getElementById('phone2').value;
+      const email = document.getElementById('email').value;
+      const address = document.getElementById('address').value;
+      const idFile = document.getElementById('id').files[0];
+
+      const status = document.getElementById('es').value;
+      const occupation = document.getElementById('occupation').value;
+      const work_phone = document.getElementById('work').value;
+
+      const loan_amount = parseFloat(document.getElementById('amount').value);
+      const repayment_months = parseInt(document.getElementById('repayment').value);
+      const bank_account = document.getElementById('bad').value;
+
+      const gname = document.getElementById('gname').value;
+      const gsurname = document.getElementById('gsurname').value;
+      const gphone = document.getElementById('gphone').value;
+
+      try {
+        // Upload ID file to bucket
+        const fileExt = idFile.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const { data: uploadData, error: uploadError } = await supabase
+          .storage
+          .from('id-copies')
+          .upload(fileName, idFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase
+          .storage
+          .from('id-copies')
+          .getPublicUrl(fileName);
+
+        // Insert into applicants
+        const { data: applicant, error: applicantError } = await supabase
+          .from('applicants')
+          .insert([{
+            name, surname, dob, gender, id_number,
+            phone1, phone2, email, address,
+            id_copy_url: publicUrl
+          }])
+          .select()
+          .single();
+
+        if (applicantError) throw applicantError;
+        const applicant_id = applicant.applicant_id;
+
+        // Employment
+        const { error: empError } = await supabase
+          .from('employment')
+          .insert([{
+            applicant_id,
+            status,
+            occupation,
+            work_phone
+          }]);
+        if (empError) throw empError;
+
+        // Loan
+        const { error: loanError } = await supabase
+          .from('loan_applications')
+          .insert([{
+            applicant_id,
+            loan_amount,
+            repayment_months,
+            bank_account
+          }]);
+        if (loanError) throw loanError;
+
+        // Guarantor
+        const { error: gError } = await supabase
+          .from('guarantors')
+          .insert([{
+            applicant_id,
+            name: gname,
+            surname: gsurname,
+            phone: gphone
+          }]);
+        if (gError) throw gError;
+
+        alert('Application submitted successfully!');
+        window.location.href = 'status.html';
+      } catch (err) {
+        console.error(err);
+        alert('Submission failed: ' + err.message);
+      }
+    }
+  </script>
 </head>
+
+<body>
   <header class="txt">
     <figure>
-        <div id="user-info" class="lg">
-         <br> <img src="user.png" class="image"><br>
-         <a class="bld-txt">Logged in as:</a><br><span id="user-email"></span><br>
-         <br><button class="nav1" onclick="logout()">Logout</button><br>
-        </div>
+      <div id="user-info" class="lg">
+        <br><img src="user.png" class="image"><br>
+        <a class="bld-txt"><strong>Logged in as:</strong></a><br>
+        <span id="user-email"></span><br>
+        <br><button id="logout-btn" class="nav1">Logout</button><br>
+      </div>
     </figure>
     <h1>RADIPODI MICRO LOANS</h1>
     <h4>"Funding Tomorrow, Today."</h4>
 
     <section>
-       <div class="nav">
-         <button onclick="location.href='apply.html'">Home</button>
-         <button onclick="location.href='apply.html'">Apply Now</button>
-         <button onclick="location.href='status.html'">Check Loan Status</button>
-         <button onclick="location.href='repay.html'">Repay</button>
-         
+      <div class="nav">
+        <button onclick="location.href='apply.html'">Home</button>
+        <button onclick="location.href='apply.html'">Apply Now</button>
+        <button onclick="location.href='status.html'">Check Loan Status</button>
+        <button onclick="location.href='repay.html'">Repay</button>
       </div>
     </section>
-</header>
-  <body>
+  </header>
 
-  <form class="frm" onsubmit="submitApplication(event)">
-
+  <!-- Form begins -->
+  <form class="frm">
+    <!-- Personal Info -->
     <h2 class="txt">Basic Personal Information</h2>
-
     <p>
-      Name: <input type="text" id="name" placeholder="John/Jane" required><br>
-      Surname: <input type="text" id="surname" placeholder="Doe" required><br>
+      Name: <input type="text" id="name" required><br>
+      Surname: <input type="text" id="surname" required><br>
       D.O.B: <input type="date" id="date" required><br>
       Gender:
-      <select id="gender" name="gender" required>
+      <select id="gender" required>
         <option value="">-- Select gender --</option>
         <option value="male">Male</option>
         <option value="female">Female</option>
         <option value="other">Other</option>
       </select>
     </p>
-
     <p>
-      ID/Passport No: <input type="text" id="omang" placeholder="012345678" required><br>
-      Phone No: <input type="text" id="phone1" placeholder="+267 71234567" required><br>
-      Phone No 2: <input type="text" id="phone2" placeholder="+267 71234567">
+      ID/Passport No: <input type="text" id="omang" required><br>
+      Phone No: <input type="text" id="phone1" required><br>
+      Phone No 2: <input type="text" id="phone2">
+    </p>
+    <p>
+      ID Copy: <input type="file" id="id" accept="image/*,.pdf" required><br>
+      Email: <input type="email" id="email" required><br>
+      Address: <input type="text" id="address" required>
     </p>
 
-    <p>
-      ID Copy:<input type="file" id="id" accept="image/*,.pdf" required><br>
-      Email: <input type="email" id="email" required placeholder="johndoe@yahoo.com"><br>
-      Residential Address: <input type="text" id="address" required>
-    </p>
-
+    <!-- Employment -->
     <h2 class="txt">Employment & Income Details</h2>
     <p>
       Employment Status:
-      <select id="es" name="es" required>
+      <select id="es" required>
         <option value="">-- Select status --</option>
         <option value="employed">Employed</option>
         <option value="self">Self-Employed</option>
         <option value="unemployed">Unemployed</option>
       </select><br>
-
-      Occupation: <input type="text" id="occupation" placeholder="e.g., Teacher" required><br>
-      Work Cell: <input type="text" id="work" placeholder="+267 71234567" required>
+      Occupation: <input type="text" id="occupation" required><br>
+      Work Cell: <input type="text" id="work" required>
     </p>
 
+    <!-- Loan -->
     <h2 class="txt">Loan-Specific Information</h2>
     <p>
-      Loan Amount Requested (P): <input type="number" id="amount" required><br>
-      Preferred Repayment Period:
-      <select id="repayment" name="repayment" required>
+      Loan Amount (P): <input type="number" id="amount" required><br>
+      Repayment Period:
+      <select id="repayment" required>
         <option value="">-- Select period --</option>
         <option value="1">1 month</option>
         <option value="2">2 months</option>
@@ -86,171 +216,21 @@
       </select>
     </p>
 
+    <!-- Banking -->
     <h2 class="txt">Banking Information</h2>
     <p>
       Bank Account Details: <input type="text" id="bad" required>
     </p>
 
+    <!-- Guarantor -->
     <h2 class="txt">References or Guarantors</h2>
     <p>
-      Name: <input type="text" id="gname" placeholder="John/Jane" required><br>
-      Surname: <input type="text" id="gsurname" placeholder="Doe" required><br>
-      Contact Info: <input type="text" id="gphone" placeholder="+267 71234567" required>
+      Name: <input type="text" id="gname" required><br>
+      Surname: <input type="text" id="gsurname" required><br>
+      Contact Info: <input type="text" id="gphone" required>
     </p>
+
     <button type="submit">Submit Application</button>
-
-
   </form>
-
-
-  <script>
-    const supabaseUrl = 'https://aybfbyewnyaismcglyls.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YmZieWV3bnlhaXNtY2dseWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzODU3OTcsImV4cCI6MjA2ODk2MTc5N30._lUj5eRW4utQ7enh_Tt6xhJAGvhu_SHbytQqkmh_B2M';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-    async function checkSession() {
-      const { data } = await supabase.auth.getUser();
-      if (data.user) {
-        document.getElementById("user-email").textContent = data.user.email;
-      } else {
-        // Redirect back to login if no session
-        window.location.href = "index.html";
-      }
-    }
-
-    async function logout() {
-      await supabase.auth.signOut();
-      window.location.href = "index.html";
-    }
-
-    checkSession();
-  </script>
-    <script>
-      // form-handler.js
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-
-// Supabase credentials
-const supabase = createClient(supabaseUrl, supabaseKey)
-
-// Session check & populate user email
-document.addEventListener('DOMContentLoaded', async () => {
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) {
-    window.location.href = 'login.html'
-    return
-  }
-
-  document.getElementById('user-email').textContent = session.user.email
-
-  document.querySelector('.frm').addEventListener('submit', submitApplication)
-})
-
-// Logout
-window.logout = async () => {
-  await supabase.auth.signOut()
-  window.location.href = 'login.html'
-}
-
-// Main submit function
-async function submitApplication(event) {
-  event.preventDefault()
-
-  const name = document.getElementById('name').value
-  const surname = document.getElementById('surname').value
-  const dob = document.getElementById('date').value
-  const gender = document.getElementById('gender').value
-  const id_number = document.getElementById('omang').value
-  const phone1 = document.getElementById('phone1').value
-  const phone2 = document.getElementById('phone2').value
-  const email = document.getElementById('email').value
-  const address = document.getElementById('address').value
-  const idFile = document.getElementById('id').files[0]
-
-  const status = document.getElementById('es').value
-  const occupation = document.getElementById('occupation').value
-  const work_phone = document.getElementById('work').value
-
-  const loan_amount = parseFloat(document.getElementById('amount').value)
-  const repayment_months = parseInt(document.getElementById('repayment').value)
-  const bank_account = document.getElementById('bad').value
-
-  const gname = document.getElementById('gname').value
-  const gsurname = document.getElementById('gsurname').value
-  const gphone = document.getElementById('gphone').value
-
-  try {
-    // Upload ID file
-    const fileExt = idFile.name.split('.').pop()
-    const fileName = `${Date.now()}.${fileExt}`
-    const { data: uploadData, error: uploadError } = await supabase
-      .storage
-      .from('id-copies')
-      .upload(fileName, idFile)
-
-    if (uploadError) throw uploadError
-
-    const { data: { publicUrl } } = supabase
-      .storage
-      .from('id-copies')
-      .getPublicUrl(fileName)
-
-    // Insert into applicants
-    const { data: applicant, error: applicantError } = await supabase
-      .from('applicants')
-      .insert([{
-        name, surname, dob, gender, id_number,
-        phone1, phone2, email, address,
-        id_copy_url: publicUrl
-      }])
-      .select()
-      .single()
-
-    if (applicantError) throw applicantError
-
-    const applicant_id = applicant.applicant_id
-
-    // Insert into employment
-    const { error: empError } = await supabase
-      .from('employment')
-      .insert([{
-        applicant_id,
-        status,
-        occupation,
-        work_phone
-      }])
-    if (empError) throw empError
-
-    // Insert into loan_applications
-    const { error: loanError } = await supabase
-      .from('loan_applications')
-      .insert([{
-        applicant_id,
-        loan_amount,
-        repayment_months,
-        bank_account
-      }])
-    if (loanError) throw loanError
-
-    // Insert into guarantors
-    const { error: gError } = await supabase
-      .from('guarantors')
-      .insert([{
-        applicant_id,
-        name: gname,
-        surname: gsurname,
-        phone: gphone
-      }])
-    if (gError) throw gError
-
-    alert('Application submitted successfully!')
-    window.location.href = 'status.html'
-
-  } catch (err) {
-    console.error('Submission error:', err)
-    alert('Submission failed: ' + err.message)
-  }
-}
-
-    </script>
 </body>
 </html>
